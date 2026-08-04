@@ -28,14 +28,6 @@ final class Driver extends AbstractOptions
     protected array $paths = [];
 
     /**
-     * Set the cache key for the annotation cache. Cache key
-     * is assembled as "doctrine.cache.{key}" and pulled from
-     * service locator. This option is only valid for the
-     * AnnotationDriver.
-     */
-    protected string $cache = 'array';
-
-    /**
      * Set the file extension to use. This option is only
      * valid for FileDrivers (XmlDriver, YamlDriver, PHPDriver, etc).
      */
@@ -50,14 +42,16 @@ final class Driver extends AbstractOptions
      */
     protected array $drivers = [];
 
+    /**
+     * The "cache" option selected the cache backing the annotation reader.
+     * Annotation support has been removed in favour of attributes, so there is
+     * nothing left to cache and the value is ignored. The setter is retained so
+     * that existing driver configuration keeps loading.
+     *
+     * @deprecated 6.4.0 The "cache" driver option is a no-op and will be removed.
+     */
     public function setCache(string $cache): void
     {
-        $this->cache = $cache;
-    }
-
-    public function getCache(): string
-    {
-        return 'doctrine.cache.' . $this->cache;
     }
 
     public function setClass(string $class): void

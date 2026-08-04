@@ -4,23 +4,16 @@ declare(strict_types=1);
 
 namespace DoctrineModule\Service;
 
-use Doctrine\Common\Annotations;
-use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver as MongoODMAnnotationDriver;
-use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver as MongoODMAttributeDriver;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver as ORMAnnotationDriver;
-use Doctrine\ORM\Mapping\Driver\AttributeDriver as ORMAttributeDriver;
 use Doctrine\Persistence\Mapping\Driver\DefaultFileLocator;
 use Doctrine\Persistence\Mapping\Driver\FileDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use DoctrineModule\Options\Driver;
 use InvalidArgumentException;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 use function class_exists;
-use function is_a;
 use function sprintf;
 
 /**
@@ -69,38 +62,7 @@ final class DriverFactory extends AbstractFactory
         // Not all drivers (DriverChain) require paths.
         $paths = $options->getPaths();
 
-        // Special options for AnnotationDrivers.
-        if (
-            $class !== ORMAttributeDriver::class &&
-            $class !== MongoODMAttributeDriver::class &&
-            (
-                is_a($class, ORMAnnotationDriver::class, true) ||
-                is_a($class, MongoODMAnnotationDriver::class, true)
-            )
-        ) {
-            $reader = new Annotations\IndexedReader(new Annotations\AnnotationReader());
-
-            // Decorate reader with cache behavior if available:
-            if (class_exists(Annotations\CachedReader::class)) {
-                // For Doctrine Annotations 1.x, use the old CachedReader; this can
-                // be removed when Annotations 1.x support is dropped.
-                $reader = new Annotations\CachedReader(
-                    $reader,
-                    $container->get($options->getCache()),
-                );
-            } elseif (class_exists(Annotations\PsrCachedReader::class)) {
-                // For Doctrine Annotations 2.x, we can use the PsrCachedReader if
-                // the cache supports the appropriate interface.
-                $cache = $container->get($options->getCache());
-                if ($cache instanceof CacheItemPoolInterface) {
-                    $reader = new Annotations\PsrCachedReader($reader, $cache);
-                }
-            }
-
-            $driver = new $class($reader, $paths);
-        } else {
-            $driver = new $class($paths);
-        }
+        $driver = new $class($paths);
 
         if ($options->getExtension() && $driver instanceof FileDriver) {
             $locator = $driver->getLocator();
