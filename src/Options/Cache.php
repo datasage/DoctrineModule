@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DoctrineModule\Options;
 
-use DoctrineModule\Cache\LaminasStorageCache;
 use Laminas\Stdlib\AbstractOptions;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Cache options
@@ -15,9 +15,9 @@ use Laminas\Stdlib\AbstractOptions;
 final class Cache extends AbstractOptions
 {
     /**
-     * Class used to instantiate the cache.
+     * PSR-6 cache item pool class used to instantiate the cache.
      */
-    protected string $class = LaminasStorageCache::class;
+    protected string $class = ArrayAdapter::class;
 
     /**
      * Namespace to prefix all cache ids with.
@@ -27,11 +27,13 @@ final class Cache extends AbstractOptions
     /**
      * Directory for file-based caching
      */
-    protected string $directory;
+    protected string|null $directory = null;
 
     /**
-     * Key to use for fetching the memcache, memcached, or redis instance from
-     * the service locator. Used only with Memcache. Memcached, and Redis.
+     * Key used to fetch a service from the container. The service is either a
+     * ready-made PSR-6 cache item pool, which is then used as-is, or the client
+     * the adapter is built on top of - a \Redis or \Memcached instance for the
+     * Redis and Memcached adapters respectively.
      */
     protected string|null $instance = null;
 
@@ -78,7 +80,7 @@ final class Cache extends AbstractOptions
         return $this;
     }
 
-    public function getDirectory(): string
+    public function getDirectory(): string|null
     {
         return $this->directory;
     }

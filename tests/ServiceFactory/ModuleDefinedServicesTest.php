@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace DoctrineModuleTest\ServiceFactory;
 
-use Composer\InstalledVersions;
-use Composer\Semver\VersionParser;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\FilesystemCache;
-use DoctrineModule\Cache\LaminasStorageCache;
 use DoctrineModuleTest\ServiceManagerFactory;
-use Laminas\Cache\Storage\Adapter\Filesystem;
-use Laminas\Cache\Storage\Adapter\Memory;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 /**
  * Test that verifies that services are defined correctly
@@ -63,18 +58,12 @@ class ModuleDefinedServicesTest extends TestCase
     /** @return mixed[][] */
     public static function getServicesThatShouldBeDefined(): array
     {
-        $legacyCacheShouldExist = InstalledVersions::satisfies(new VersionParser(), 'doctrine/cache', '^1.0');
-
         return [
             ['doctrine.cache.array', true],
             ['doctrine.cache.apcu', true],
             ['doctrine.cache.filesystem', true],
             ['doctrine.cache.memcached', true],
             ['doctrine.cache.redis', true],
-            ['doctrine.cache.memcache', $legacyCacheShouldExist],
-            ['doctrine.cache.wincache', $legacyCacheShouldExist],
-            ['doctrine.cache.xcache', $legacyCacheShouldExist],
-            ['doctrine.cache.zenddata', $legacyCacheShouldExist],
             ['doctrine.authenticationadapter.orm_default', true],
             ['doctrine.authenticationstorage.orm_default', true],
             ['doctrine.authenticationservice.orm_default', true],
@@ -94,18 +83,9 @@ class ModuleDefinedServicesTest extends TestCase
     /** @return string[][] */
     public static function getServicesThatCanBeFetched(): array
     {
-        if (InstalledVersions::satisfies(new VersionParser(), 'doctrine/cache', '^1.0')) {
-            return [
-                ['doctrine.cache.array', ArrayCache::class],
-                ['doctrine.cache.filesystem', FilesystemCache::class],
-            ];
-        }
-
         return [
-            ['doctrine.cache.array', LaminasStorageCache::class],
-            ['doctrine.cache.filesystem', LaminasStorageCache::class],
-            ['doctrinemodule.cache.array', Memory::class],
-            ['doctrinemodule.cache.filesystem', Filesystem::class],
+            ['doctrine.cache.array', ArrayAdapter::class],
+            ['doctrine.cache.filesystem', FilesystemAdapter::class],
         ];
     }
 

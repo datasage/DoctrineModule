@@ -10,12 +10,11 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver as MongoDBODMAttributeDr
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver as ORMAnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver as ORMAttributeDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
-use DoctrineModule\Cache\LaminasStorageCache;
 use DoctrineModule\Service\DriverFactory;
 use DoctrineModuleTest\Service\Mock\MetadataDriverMock;
-use Laminas\Cache\Storage\Adapter\Memory;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Base test case to be used when a service manager instance is required
@@ -127,7 +126,7 @@ class DriverFactoryTest extends BaseTestCase
         );
         $serviceManager->setService(
             'doctrine.cache.array',
-            new LaminasStorageCache(new Memory()),
+            new ArrayAdapter(),
         );
 
         $factory = new DriverFactory('testDriver');
@@ -151,7 +150,7 @@ class DriverFactoryTest extends BaseTestCase
         );
         $serviceManager->setService(
             'doctrine.cache.array',
-            new LaminasStorageCache(new Memory()),
+            new ArrayAdapter(),
         );
 
         $factory = new DriverFactory('testDriver');

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace DoctrineModule;
 
-use DoctrineModule\Cache\LaminasStorageCache;
 use Laminas\Authentication\Storage\Session as LaminasSessionStorage;
-use Laminas\Cache\Storage\Adapter\Memory;
+use Symfony\Component\Cache\Adapter\ApcuAdapter;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\MemcachedAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 
 /**
  * Config provider for DoctrineORMModule config
@@ -17,7 +20,6 @@ final class ConfigProvider
     public function __invoke(): array
     {
         return [
-            'caches' => $this->getCachesConfig(),
             'doctrine' => $this->getDoctrineConfig(),
             'doctrine_factories' => $this->getDoctrineFactoryConfig(),
             'dependencies' => $this->getDependencyConfig(),
@@ -105,47 +107,13 @@ final class ConfigProvider
         ];
     }
 
-    /** @return array<non-empty-string, array{adapter: string, options?: mixed[], plugins?: mixed[]}> */
-    public function getCachesConfig(): array
-    {
-        $defaultOptions = ['namespace' => 'DoctrineModule'];
-
-        return [
-            'doctrinemodule.cache.apcu' => [
-                'adapter' => 'apcu',
-                'options' => $defaultOptions,
-            ],
-            'doctrinemodule.cache.array' => [
-                'adapter' => Memory::class,
-                'options' => $defaultOptions,
-            ],
-            'doctrinemodule.cache.filesystem' => [
-                'adapter' => 'filesystem',
-                'options' => $defaultOptions + [
-                    'cache_dir' => 'data/DoctrineModule/cache',
-                    // We need to be slightly less restrictive than Filesystem defaults:
-                    'key_pattern' => '/^[a-z0-9_\+\-\[\]\\\\$#]*$/Di',
-                ],
-                'plugins' => [['name' => 'serializer']],
-            ],
-            'doctrinemodule.cache.memcached' => [
-                'adapter' => 'memcached',
-                'options' => $defaultOptions + ['servers' => []],
-            ],
-            'doctrinemodule.cache.redis' => [
-                'adapter' => 'redis',
-                'options' => $defaultOptions + [
-                    'server' => [
-                        'host' => 'localhost',
-                        'post' => 6379,
-                    ],
-                ],
-            ],
-        ];
-    }
-
     /**
-     * Use laminas/laminas-cache, as doctrine/cache ^2.0 does not include any cache adapters anymore
+     * PSR-6 cache item pools, provided by symfony/cache.
+     *
+     * The memcached and redis adapters are built on top of a connected client,
+     * so their "instance" option must name a container service holding a
+     * \Memcached or \Redis instance respectively. Alternatively, "instance" may
+     * name a service holding a ready-made PSR-6 pool, which is then used as-is.
      *
      * @return array<non-empty-string,array{class:class-string,instance?:string,namespace?:string,directory?:string}>
      */
@@ -153,24 +121,24 @@ final class ConfigProvider
     {
         return [
             'apcu' => [
-                'class' => LaminasStorageCache::class,
-                'instance' => 'doctrinemodule.cache.apcu',
+                'class' => ApcuAdapter::class,
+                'namespace' => 'DoctrineModule',
             ],
-            'array' => [
-                'class' => LaminasStorageCache::class,
-                'instance' => 'doctrinemodule.cache.array',
-            ],
+            'array' => ['class' => ArrayAdapter::class],
             'filesystem' => [
-                'class' => LaminasStorageCache::class,
-                'instance' => 'doctrinemodule.cache.filesystem',
+                'class' => FilesystemAdapter::class,
+                'namespace' => 'DoctrineModule',
+                'directory' => 'data/DoctrineModule/cache',
             ],
             'memcached' => [
-                'class' => LaminasStorageCache::class,
-                'instance' => 'doctrinemodule.cache.memcached',
+                'class' => MemcachedAdapter::class,
+                'namespace' => 'DoctrineModule',
+                'instance' => 'doctrinemodule.cache.memcached_client',
             ],
             'redis' => [
-                'class' => LaminasStorageCache::class,
-                'instance' => 'doctrinemodule.cache.redis',
+                'class' => RedisAdapter::class,
+                'namespace' => 'DoctrineModule',
+                'instance' => 'doctrinemodule.cache.redis_client',
             ],
         ];
     }
