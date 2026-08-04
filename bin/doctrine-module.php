@@ -1,6 +1,15 @@
 <?php
 
+use Laminas\EventManager\EventManager;
+use Laminas\EventManager\SharedEventManager;
+use Laminas\ModuleManager\Feature\ServiceProviderInterface;
+use Laminas\ModuleManager\Listener\DefaultListenerAggregate;
+use Laminas\ModuleManager\Listener\ListenerOptions;
+use Laminas\ModuleManager\Listener\ServiceListener;
+use Laminas\ModuleManager\ModuleEvent;
+use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\Application;
+use Laminas\ServiceManager\ServiceManager;
 use Laminas\Stdlib\ArrayUtils;
 
 ini_set('display_errors', true);
@@ -38,8 +47,48 @@ if (file_exists('config/development.config.php')) {
     $appConfig = ArrayUtils::merge($appConfig, include 'config/development.config.php');
 }
 
-$application = Application::init($appConfig);
+if (class_exists(Application::class)) {
+    // laminas-mvc is installed, so bootstrap the full application. This runs
+    // every module's onBootstrap() listener, which is what this script has
+    // always done and what modules registering event subscribers rely on.
+    $serviceManager = Application::init($appConfig)->getServiceManager();
+} else {
+    // laminas-mvc is optional, and has no PHP 8.5 release. Wire the module
+    // manager directly so the CLI keeps working without it.
+    //
+    // Note that no MVC bootstrap happens on this path, so module onBootstrap()
+    // listeners are NOT invoked. Modules that register Doctrine event
+    // subscribers there must do so from getConfig() or init() instead.
+    $serviceManager = new ServiceManager();
+    $serviceManager->setService('ApplicationConfig', $appConfig);
+
+    $events = new EventManager(new SharedEventManager());
+
+    $serviceListener = new ServiceListener($serviceManager);
+    $serviceListener->addServiceManager(
+        $serviceManager,
+        'service_manager',
+        ServiceProviderInterface::class,
+        'getServiceConfig'
+    );
+    $serviceManager->setService('ServiceListener', $serviceListener);
+
+    $defaultListeners = new DefaultListenerAggregate(
+        new ListenerOptions($appConfig['module_listener_options'] ?? [])
+    );
+    $defaultListeners->attach($events);
+    $serviceListener->attach($events);
+
+    $moduleEvent = new ModuleEvent();
+    $moduleEvent->setParam('ServiceManager', $serviceManager);
+
+    $moduleManager = new ModuleManager($appConfig['modules'] ?? [], $events);
+    $moduleManager->setEvent($moduleEvent);
+    $moduleManager->loadModules();
+
+    $serviceManager->setService('config', $moduleEvent->getConfigListener()->getMergedConfig(false));
+}
 
 /* @var $cli \Symfony\Component\Console\Application */
-$cli = $application->getServiceManager()->get('doctrine.cli');
+$cli = $serviceManager->get('doctrine.cli');
 exit($cli->run());

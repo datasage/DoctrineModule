@@ -9,6 +9,21 @@ parameters:
           identifier: missingType.generics
         -
           identifier: method.alreadyNarrowedType
+        -
+          identifier: function.alreadyNarrowedType
+        # doctrine/persistence 3 leaves ClassMetadata::getIdentifierFieldNames()
+        # untyped, so it can yield null there; persistence 4 declares it as
+        # returning an array, which makes the guard look redundant. Both majors
+        # are supported, so the guard has to stay.
+        -
+          identifier: notIdentical.alwaysTrue
+          path: src/Form/Element/Proxy.php
+        # symfony/console is supported from 6.2 to 8.x. Application::add() was
+        # replaced by addCommand() in 7.4 and removed in 8.0, so the fallback is
+        # unreachable when analysing against the highest supported version.
+        -
+          identifier: method.notFound
+          path: tests/Service/CliFactoryTest.php
         # laminas-form marks these elements @final in phpdoc only; extending them
         # is the entire purpose of the DoctrineModule form elements.
         -

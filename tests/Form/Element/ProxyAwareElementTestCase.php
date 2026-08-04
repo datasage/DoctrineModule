@@ -47,8 +47,11 @@ class ProxyAwareElementTestCase extends TestCase
             ->setFirstname('object two firstname')
             ->setSurname('object two surname');
 
-        $result       = new ArrayCollection([$objectOne, $objectTwo]);
-        $this->values = $result;
+        // The repository returns an array; doctrine/persistence 4 declares
+        // findAll(): array. $values stays a Collection because it is used to
+        // exercise setting a Collection as the element's value.
+        $result       = [$objectOne, $objectTwo];
+        $this->values = new ArrayCollection($result);
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata

@@ -26,14 +26,14 @@ class ObjectRepositoryTest extends BaseTestCase
         $objectRepository = $this->createMock(ObjectRepository::class);
         $objectRepository->expects($this->exactly(1))
                          ->method('find')
-                         ->with($this->equalTo('a username'))
+                         ->with($this->equalTo(['username' => 'a username']))
                          ->willReturn($entity);
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->expects($this->exactly(1))
                  ->method('getIdentifierValues')
                  ->with($this->equalTo($entity))
-                 ->willReturn($entity->getUsername());
+                 ->willReturn(['username' => $entity->getUsername()]);
 
         $storage = new ObjectRepositoryStorage([
             'objectRepository' => $objectRepository,
@@ -48,6 +48,6 @@ class ObjectRepositoryTest extends BaseTestCase
         $this->assertEquals($entity, $result);
 
         $key = $storage->readKeyOnly();
-        $this->assertEquals('a username', $key);
+        $this->assertEquals(['username' => 'a username'], $key);
     }
 }

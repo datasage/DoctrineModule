@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace DoctrineModuleTest\Form\Element;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use DoctrineModule\Form\Element\Exception\InvalidRepositoryResultException;
 use DoctrineModule\Form\Element\Proxy;
 use DoctrineModuleTest\Form\Element\TestAsset\FormObject;
+use DoctrineModuleTest\Form\Element\TestAsset\UntypedResultRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -378,7 +378,7 @@ class ProxyTest extends TestCase
 
     public function testExceptionThrownForNonTraversableResults(): void
     {
-        $this->prepareEmptyProxy(new stdClass());
+        $this->prepareProxyWithUntypedFindMethod(new stdClass());
 
         $this->expectException(
             InvalidRepositoryResultException::class,
@@ -592,7 +592,7 @@ class ProxyTest extends TestCase
             ->setFirstname('object two firstname')
             ->setSurname('object two surname');
 
-        $result = new ArrayCollection([$objectOne, $objectTwo]);
+        $result = [$objectOne, $objectTwo];
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata
@@ -673,7 +673,7 @@ class ProxyTest extends TestCase
             ->setSurname('object three surname')
             ->setOptgroup('Group Two');
 
-        $result = new ArrayCollection([$objectOne, $objectTwo, $objectThree]);
+        $result = [$objectOne, $objectTwo, $objectThree];
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata
@@ -748,7 +748,7 @@ class ProxyTest extends TestCase
             ->setFirstname('object two firstname')
             ->setSurname('object two surname');
 
-        $result = new ArrayCollection([$objectOne, $objectTwo]);
+        $result = [$objectOne, $objectTwo];
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata
@@ -818,7 +818,7 @@ class ProxyTest extends TestCase
             ->setFirstname('object two firstname')
             ->setSurname('object two surname');
 
-        $result = new ArrayCollection([$objectOne, $objectTwo]);
+        $result = [$objectOne, $objectTwo];
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata
@@ -875,12 +875,9 @@ class ProxyTest extends TestCase
         $this->metadata = $metadata;
     }
 
-    public function prepareEmptyProxy(mixed $result = null): void
+    /** @param mixed[] $result */
+    public function prepareEmptyProxy(array $result = []): void
     {
-        if ($result === null) {
-            $result = new ArrayCollection();
-        }
-
         $objectClass      = FormObject::class;
         $metadata         = $this->createMock(ClassMetadata::class);
         $objectRepository = $this->createMock(ObjectRepository::class);
@@ -906,6 +903,44 @@ class ProxyTest extends TestCase
         $this->proxy->setOptions([
             'object_manager' => $objectManager,
             'target_class'   => $objectClass,
+        ]);
+
+        $this->metadata = $metadata;
+    }
+
+    /**
+     * Configures the proxy to load through a find method with no declared
+     * return type, so that results which are neither an array nor Traversable
+     * can be exercised.
+     */
+    public function prepareProxyWithUntypedFindMethod(mixed $result): void
+    {
+        $objectClass      = FormObject::class;
+        $metadata         = $this->createMock(ClassMetadata::class);
+        $objectRepository = $this->createMock(UntypedResultRepository::class);
+
+        $objectRepository
+            ->expects($this->once())
+            ->method('findUntypedResult')
+            ->willReturn($result);
+
+        $objectManager = $this->createMock(ObjectManager::class);
+        $objectManager
+            ->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo($objectClass))
+            ->willReturn($metadata);
+
+        $objectManager
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo($objectClass))
+            ->willReturn($objectRepository);
+
+        $this->proxy->setOptions([
+            'object_manager' => $objectManager,
+            'target_class'   => $objectClass,
+            'find_method'    => ['name' => 'findUntypedResult'],
         ]);
 
         $this->metadata = $metadata;

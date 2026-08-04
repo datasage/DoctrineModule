@@ -12,6 +12,8 @@ use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\Console\Application;
 
+use function method_exists;
+
 /**
  * Base test case for the setup of Doctrine CLI
  */
@@ -39,6 +41,14 @@ class CliFactoryTest extends BaseTestCase
             static function (EventInterface $event): void {
                 $target = $event->getTarget();
                 if (! ($target instanceof Application)) {
+                    return;
+                }
+
+                // Application::add() was replaced by addCommand() in Symfony 7.4
+                // and removed in Symfony 8.
+                if (method_exists($target, 'addCommand')) {
+                    $target->addCommand(new DummyCliCommand());
+
                     return;
                 }
 
