@@ -9,8 +9,14 @@
     <!-- set minimal required PHP version (8.2) -->
     <config name="php_version" value="80200"/>
 
-    <!-- Ignore warnings, show progress of the run and show sniff names -->
-    <arg value="nps"/>
+    <!--
+        Ignore warnings, run quietly and show sniff names.
+
+        Quiet mode matters for CI: the reusable coding-standards workflow pipes
+        the checkstyle report into cs2pr, and doctrine/coding-standard emits a
+        deprecated sniff banner on stdout that would otherwise corrupt the XML.
+    -->
+    <arg value="nqs"/>
 
     <!-- Directories to be checked -->
     <file>src</file>
