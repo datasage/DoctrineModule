@@ -16,6 +16,12 @@ parameters:
           paths:
             - src/Form/Element/ObjectRadio.php
             - src/Form/Element/ObjectSelect.php
+        # ServiceListener::addServiceManager() is documented as taking a string,
+        # but explicitly handles a ServiceManager instance too - which is what
+        # laminas-mvc itself passes for the "service_manager" key.
+        -
+          identifier: argument.type
+          path: tests/ServiceManagerFactory.php
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
     - vendor/phpstan/phpstan-phpunit/rules.neon

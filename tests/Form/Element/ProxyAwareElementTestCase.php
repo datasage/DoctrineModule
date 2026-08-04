@@ -112,7 +112,6 @@ class ProxyAwareElementTestCase extends TestCase
         }
 
         $prop = new ReflectionProperty($this->element::class, 'proxy');
-        $prop->setAccessible(true);
         $prop->setValue($element, $proxy);
     }
 }

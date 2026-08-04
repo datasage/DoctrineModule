@@ -10,22 +10,20 @@
     ],
     "homepage": "https://www.doctrine-project.org/",
     "require": {
-        "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+        "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
         "composer-runtime-api": "^2.0.0",
         "composer/semver": "^3.0.0",
         "doctrine/collections": "^2.0.0",
-        "doctrine/doctrine-laminas-hydrator": "^3.2.0",
         "doctrine/event-manager": "^2.0.0",
         "doctrine/inflector": "^2.0.6",
         "doctrine/persistence": "^3.0.0",
         "laminas/laminas-authentication": "^2.12.0",
         "laminas/laminas-eventmanager": "^3.5.0",
         "laminas/laminas-form": "^3.4.1",
-        "laminas/laminas-mvc": "^3.3.5",
-        "laminas/laminas-paginator": "^2.13.0",
-        "laminas/laminas-servicemanager": "^3.17.0",
+        "laminas/laminas-paginator": "^2.13.0 || ^3.0.0",
+        "laminas/laminas-servicemanager": "^3.17.0 || ^4.0.0",
         "laminas/laminas-stdlib": "^3.13.0",
-        "laminas/laminas-validator": "^2.25.0",
+        "laminas/laminas-validator": "^2.25.0 || ^3.0.0",
         "psr/cache": "^1.0 || ^2.0 || ^3.0",
         "psr/container": "^1.1.2",
         "symfony/cache": "^6.4.0 || ^7.0.0 || ^8.0.0",
@@ -33,7 +31,7 @@
     },
     "require-dev": {
         "doctrine/coding-standard": "^12.0.0",
-        "doctrine/mongodb-odm": "^2.7.1",
+        "doctrine/mongodb-odm": "^2.16.3",
         "doctrine/orm": "^2.20.1",
         "jangregor/phpstan-prophecy": "^2.0.0",
         "laminas/laminas-modulemanager": "^2.12.0",
@@ -49,6 +47,7 @@
     },
     "suggest": {
         "doctrine/data-fixtures": "Data Fixtures if you want to generate test data or bootstrap data for your deployments",
+        "doctrine/doctrine-laminas-hydrator": "To hydrate Doctrine objects from Laminas forms",
         "doctrine/doctrine-mongo-odm-module": "For use with Doctrine MongDB ODM",
         "doctrine/doctrine-orm-module": "For use with Doctrine ORM"
     },
@@ -70,7 +69,7 @@
             "dealerdirect/phpcodesniffer-composer-installer": true
         },
         "platform": {
-            "ext-mongodb": "1.11.0"
+            "ext-mongodb": "2.1.1"
         },
         "sort-packages": true
     },
