@@ -21,7 +21,9 @@ class ObjectRadio extends RadioElement
     {
         $this->getProxy()->setOptions($options);
 
-        return parent::setOptions($options);
+        parent::setOptions($options);
+
+        return $this;
     }
 
     /** @return $this */

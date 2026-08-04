@@ -25,7 +25,9 @@ class ObjectMultiCheckbox extends MultiCheckbox
     {
         $this->getProxy()->setOptions($options);
 
-        return parent::setOptions($options);
+        parent::setOptions($options);
+
+        return $this;
     }
 
     /** @return $this */

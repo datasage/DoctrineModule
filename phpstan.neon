@@ -9,6 +9,13 @@ parameters:
           identifier: missingType.generics
         -
           identifier: method.alreadyNarrowedType
+        # laminas-form marks these elements @final in phpdoc only; extending them
+        # is the entire purpose of the DoctrineModule form elements.
+        -
+          identifier: class.extendsFinalByPhpDoc
+          paths:
+            - src/Form/Element/ObjectRadio.php
+            - src/Form/Element/ObjectSelect.php
         -
           message: '#internal(G|S)etItem\(\) has parameter \$(casToken|value) with no type specified#'
           path: src/Cache/DoctrineCacheStorage.php

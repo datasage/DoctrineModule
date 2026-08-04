@@ -38,7 +38,7 @@ class ObjectSelect extends SelectElement
     /**
      * {@inheritDoc}
      */
-    public function setValue($value)
+    public function setValue(mixed $value)
     {
         $multiple = $this->getAttribute('multiple');
 
