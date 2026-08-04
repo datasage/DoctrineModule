@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace DoctrineModuleTest\ServiceFactory;
 
+use DoctrineModuleTest\Service\TestAsset\DummyCliCommand;
 use DoctrineModuleTest\ServiceManagerFactory;
+use Laminas\EventManager\EventInterface;
+use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Console\Application;
+
+use function assert;
+use function method_exists;
 
 /**
  * Test that verifies that services are defined correctly
@@ -21,6 +28,43 @@ class ModuleDefinedServicesTest extends TestCase
     protected function setUp(): void
     {
         $this->serviceManager = ServiceManagerFactory::getServiceManager();
+    }
+
+    /**
+     * The CLI application is built by CliFactory, which pulls "EventManager"
+     * from the container and triggers loadCli.post on it. The ORM and ODM
+     * modules attach to that event on the shared manager during init(), so this
+     * covers the whole path: the service resolving at all, and a shared
+     * listener actually being reached.
+     */
+    public function testCliApplicationIsBuiltAndReachesSharedListeners(): void
+    {
+        $sharedEvents = $this->serviceManager->get('SharedEventManager');
+        assert($sharedEvents instanceof SharedEventManagerInterface);
+
+        $sharedEvents->attach(
+            'doctrine',
+            'loadCli.post',
+            static function (EventInterface $event): void {
+                $target = $event->getTarget();
+                if (! $target instanceof Application) {
+                    return;
+                }
+
+                if (method_exists($target, 'addCommand')) {
+                    $target->addCommand(new DummyCliCommand());
+
+                    return;
+                }
+
+                $target->add(new DummyCliCommand());
+            },
+        );
+
+        $cli = $this->serviceManager->get('doctrine.cli');
+
+        $this->assertInstanceOf(Application::class, $cli);
+        $this->assertTrue($cli->has('app:dummy-command'));
     }
 
     /**

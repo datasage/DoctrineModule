@@ -62,7 +62,18 @@ if (class_exists(Application::class)) {
     $serviceManager = new ServiceManager();
     $serviceManager->setService('ApplicationConfig', $appConfig);
 
-    $events = new EventManager(new SharedEventManager());
+    $sharedEvents = new SharedEventManager();
+    $events = new EventManager($sharedEvents);
+
+    // laminas-mvc registers these, and CliFactory resolves "EventManager" from
+    // the container. The ORM and ODM modules attach their loadCli.post handlers
+    // to the shared manager during init(), so it has to be the same instance
+    // the module manager uses, or no commands get registered.
+    $serviceManager->setService('SharedEventManager', $sharedEvents);
+    $serviceManager->setFactory('EventManager', static function () use ($sharedEvents) {
+        return new EventManager($sharedEvents);
+    });
+    $serviceManager->setShared('EventManager', false);
 
     $serviceListener = new ServiceListener($serviceManager);
     $serviceListener->addServiceManager(

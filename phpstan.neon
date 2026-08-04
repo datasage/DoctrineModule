@@ -23,7 +23,9 @@ parameters:
         # unreachable when analysing against the highest supported version.
         -
           identifier: method.notFound
-          path: tests/Service/CliFactoryTest.php
+          paths:
+            - tests/Service/CliFactoryTest.php
+            - tests/ServiceFactory/ModuleDefinedServicesTest.php
         # laminas-form marks these elements @final in phpdoc only; extending them
         # is the entire purpose of the DoctrineModule form elements.
         -

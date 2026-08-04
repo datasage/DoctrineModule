@@ -40,7 +40,20 @@ class ServiceManagerFactory
         $serviceManager = new ServiceManager();
         $serviceManager->setService('ApplicationConfig', $configuration);
 
-        $events = new EventManager(new SharedEventManager());
+        $sharedEvents = new SharedEventManager();
+        $events       = new EventManager($sharedEvents);
+
+        // laminas-mvc registers these, and CliFactory resolves "EventManager"
+        // from the container. Listeners such as the ORM and ODM modules'
+        // loadCli.post handlers attach to the shared manager during init(), so
+        // it has to be the same instance the module manager uses. EventManager
+        // is not shared, matching laminas-mvc's ServiceManagerConfig.
+        $serviceManager->setService('SharedEventManager', $sharedEvents);
+        $serviceManager->setFactory(
+            'EventManager',
+            static fn (): EventManager => new EventManager($sharedEvents),
+        );
+        $serviceManager->setShared('EventManager', false);
 
         $serviceListener = new ServiceListener($serviceManager);
         $serviceListener->addServiceManager(
