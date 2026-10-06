@@ -28,3 +28,13 @@ jobs:
       php-versions: '["8.2", "8.3", "8.4", "8.5"]'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  phpunit-php-8-6:
+    name: "PHPUnit (PHP 8.6)"
+    uses: "doctrine/.github/.github/workflows/continuous-integration.yml@15.1.0"
+    with:
+      php-versions: '["8.6"]'
+      # laminas dependencies do not declare PHP 8.6 support yet
+      composer-options: "--prefer-dist --ignore-platform-req=php+"
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
