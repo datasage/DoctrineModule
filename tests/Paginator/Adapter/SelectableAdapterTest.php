@@ -6,10 +6,12 @@ namespace DoctrineModuleTest\Paginator\Adapter;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\Selectable;
 use DoctrineModule\Paginator\Adapter\Selectable as SelectableAdapter;
 use PHPUnit\Framework\TestCase;
 
+use function enum_exists;
 use function range;
 
 /**
@@ -141,19 +143,21 @@ class SelectableAdapterTest extends TestCase
     /** @covers \DoctrineModule\Paginator\Adapter\Selectable::count */
     public function testReturnsCorrectCount(): void
     {
+        // collections 3 accepts only the Order enum; 2.1, the lowest supported, predates it
         $selectable = $this->createMock(Selectable::class);
         $expression = Criteria::expr()->eq('foo', 'bar');
-        $criteria   = new Criteria($expression, ['baz' => Criteria::DESC], 10, 20);
+        $ordering   = enum_exists(Order::class) ? Order::Descending : 'DESC';
+        $criteria   = new Criteria($expression, ['baz' => $ordering], 10, 20);
         $adapter    = new SelectableAdapter($selectable, $criteria);
 
         $selectable->expects($this->once())
             ->method('matching')
             ->with(
                 $this->callback(
-                    static fn (Criteria $criteria) => $criteria->getWhereExpression() === $expression
-                        && ($criteria->getOrderings() === ['baz' => Criteria::DESC])
-                        && $criteria->getFirstResult() === null
-                        && $criteria->getMaxResults() === null,
+                    static fn (Criteria $countCriteria) => $countCriteria->getWhereExpression() === $expression
+                        && $countCriteria->getOrderings() === $criteria->getOrderings()
+                        && $countCriteria->getFirstResult() === 0
+                        && $countCriteria->getMaxResults() === null,
                 ),
             )
             ->willReturn(new ArrayCollection(range(1, 101)));
