@@ -5,6 +5,13 @@ DoctrineModule comes with functionality that can automatically fill the
 ``ValueOptions`` of Select, MultiCheckbox or Radio Form Elements with
 data from a ``ObjectRepository``.
 
+These elements extend laminas-form, which DoctrineModule does not install
+for you. Require it alongside DoctrineModule to use them:
+
+.. code:: bash
+
+   $ composer require laminas/laminas-form
+
 Usage
 ~~~~~
 
