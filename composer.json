@@ -23,8 +23,8 @@
         "laminas/laminas-validator": "^2.25.0 || ^3.0.0",
         "psr/cache": "^1.0 || ^2.0 || ^3.0",
         "psr/container": "^1.1.2 || ^2.0.0",
-        "symfony/cache": "^6.4.0 || ^7.0.0 || ^8.0.0",
-        "symfony/console": "^6.2.1 || ^7.0.0 || ^8.0.0"
+        "symfony/cache": "^7.0.0 || ^8.0.0",
+        "symfony/console": "^7.0.0 || ^8.0.0"
     },
     "require-dev": {
         "doctrine/coding-standard": "^12.0.0",
